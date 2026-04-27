@@ -49,6 +49,12 @@ let
     builtins.readFile ./prebuilt/duo-s-kernel-config.txt
   );
 
+  aic8800-shutup = pkgs.fetchpatch2 {
+    name = "kernel-reduce-aic8800-logs";
+    url = "https://github.com/milkv-duo/duo-buildroot-sdk-v2/commit/951812468d912db10c3acad2cefb0974d4e86d28.patch";
+    hash = "sha256-z3Ko5OXEel8MyB0AZD36e29iD3YAXYXNnQXzUMXFSjI=";
+  };
+
   kernel =
     (pkgs.linuxManualConfig {
       inherit version src configfile;
@@ -56,6 +62,8 @@ let
     }).overrideAttrs
       {
         preConfigure = ''
+          patch -Np2 -i ${aic8800-shutup}
+
           substituteInPlace arch/riscv/Makefile \
             --replace '-mno-ldd' "" \
             --replace 'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)' \
@@ -96,6 +104,10 @@ in
     "console=ttyS0,115200"
     "earlycon=sbi"
     "riscv.fwsz=0x80000"
+    "blkdevparts=mmcblk0:63360K(BOOT),2048K(MISC),128K(ENV),-(ROOTFS);mmcblk0boot0:1M(fip),1M(fip_bak);"
+    "root=/dev/mmcblk0p4"
+    "rootwait"
+    "rw"
   ];
   boot.consoleLogLevel = 9;
 
@@ -108,6 +120,8 @@ in
   boot.loader = {
     grub.enable = false;
   };
+
+  boot.initrd.enable = false;
 
   boot.kernel.sysctl = {
     "vm.watermark_boost_factor" = 0;
@@ -162,17 +176,6 @@ in
           };
         };
 
-        ramdisk-1 {
-          description = "ramdisk";
-          type = "ramdisk";
-          data = /incbin/("${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile}");
-          arch = "riscv";
-          os = "linux";
-          compression = "none";
-          load = <00000000>;
-          entry = <00000000>;
-        };
-
         fdt-1 {
           description = "flat_dt";
           type = "flat_dt";
@@ -186,10 +189,10 @@ in
       };
 
       configurations {
-        config-cv1813h_milkv_duos_sd {
+        default = "config-cv1813h_milkv_duos_emmc";
+        config-cv1813h_milkv_duos_emmc {
           description = "boot cvitek system with board cv1812h_milkv_duos";
           kernel = "kernel-1";
-          ramdisk = "ramdisk-1";
           fdt = "fdt-1";
         };
       };
@@ -240,6 +243,9 @@ in
       zram-size = "ram * 2";
     };
   };
+
+  boot.initrd.systemd.root = null;
+  boot.initrd.compressor = "zstd";
 
   users.users.root.initialPassword = "milkv";
   services.getty.autologinUser = "root";
@@ -323,7 +329,7 @@ in
 
   environment.systemPackages = with pkgs; [
     pfetch
-    python311
+    python3
     usbutils
     inetutils
     iproute2
@@ -347,5 +353,10 @@ in
       cp ${config.system.build.bootsd} firmware/boot.sd
     '';
   };
+
+  sdImage.expandOnBoot = true;
+  systemd.services.expand-root-partition.script = lib.mkForce ''
+    ${lib.getExe' pkgs.e2fsprogs "resize2fs"} /dev/mmcblk0p4
+  '';
 
 }

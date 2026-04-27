@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NickCao/nixpkgs/riscv";
+    nixpkgs.url = "github:cryolitia/nixpkgs/555e489664bb";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
   outputs =

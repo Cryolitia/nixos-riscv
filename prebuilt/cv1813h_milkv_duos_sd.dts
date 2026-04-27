@@ -48,20 +48,20 @@
 
 	tpu {
 		compatible = "cvitek,tpu";
-		reg-names = "tdma\0tiu";
+		reg-names = "tdma", "tiu";
 		reg = <0x00 0xc100000 0x00 0x1000 0x00 0xc101000 0x00 0x1000>;
 		clocks = <0x02 0x0f 0x02 0x10>;
-		clock-names = "clk_tpu_axi\0clk_tpu_fab";
+		clock-names = "clk_tpu_axi", "clk_tpu_fab";
 		resets = <0x03 0x07 0x03 0x08 0x03 0x09>;
-		reset-names = "res_tdma\0res_tpu\0res_tpusys";
+		reset-names = "res_tdma", "res_tpu", "res_tpusys";
 		interrupts = <0x4b 0x04 0x4c 0x04>;
-		interrupt-names = "tiu_irq\0tdma_irq";
+		interrupt-names = "tiu_irq", "tdma_irq";
 		interrupt-parent = <0x04>;
 	};
 
 	mon {
 		compatible = "cvitek,mon";
-		reg-names = "pcmon\0ddr_ctrl\0ddr_phyd\0ddr_aximon\0ddr_top";
+		reg-names = "pcmon", "ddr_ctrl", "ddr_phyd", "ddr_aximon", "ddr_top";
 		reg = <0x00 0x1040000 0x00 0x1000 0x00 0x8004000 0x00 0x1000 0x00 0x8006000 0x00 0x1000 0x00 0x8008000 0x00 0x1000 0x00 0x800a000 0x00 0x1000>;
 		interrupts = <0x5d 0x04>;
 		interrupt-names = "mon_irq";
@@ -73,7 +73,7 @@
 		reg-names = "wiegand";
 		reg = <0x00 0x3030000 0x00 0x1000>;
 		clocks = <0x02 0x81 0x02 0x82>;
-		clock-names = "clk_wgn\0clk_wgn1";
+		clock-names = "clk_wgn", "clk_wgn1";
 		resets = <0x03 0x56>;
 		reset-names = "res_wgn";
 		interrupts = <0x40 0x04>;
@@ -85,7 +85,7 @@
 		reg-names = "wiegand";
 		reg = <0x00 0x3031000 0x00 0x1000>;
 		clocks = <0x02 0x81 0x02 0x83>;
-		clock-names = "clk_wgn\0clk_wgn1";
+		clock-names = "clk_wgn", "clk_wgn1";
 		resets = <0x03 0x57>;
 		reset-names = "res_wgn";
 		interrupts = <0x41 0x04>;
@@ -97,7 +97,7 @@
 		reg-names = "wiegand";
 		reg = <0x00 0x3032000 0x00 0x1000>;
 		clocks = <0x02 0x81 0x02 0x84>;
-		clock-names = "clk_wgn\0clk_wgn1";
+		clock-names = "clk_wgn", "clk_wgn1";
 		resets = <0x03 0x58>;
 		reset-names = "res_wgn";
 		interrupts = <0x42 0x04>;
@@ -106,7 +106,7 @@
 
 	saradc {
 		compatible = "cvitek,saradc";
-		reg-names = "top_domain_saradc\0rtc_domain_saradc";
+		reg-names = "top_domain_saradc", "rtc_domain_saradc";
 		reg = <0x00 0x30f0000 0x00 0x1000 0x00 0x502c000 0x00 0x1000>;
 		clocks = <0x02 0x15>;
 		clock-names = "clk_saradc";
@@ -203,24 +203,6 @@
 		compatible = "fixed-clock";
 		clock-frequency = <0x17d7840>;
 		phandle = <0x06>;
-	};
-
-	cvi-spif@10000000 {
-		compatible = "cvitek,cvi-spif";
-		bus-num = <0x00>;
-		reg = <0x00 0x10000000 0x00 0x10000000>;
-		reg-names = "spif";
-		sck-div = <0x03>;
-		sck_mhz = <0x12c>;
-		spi-max-frequency = <0x47868c0>;
-		interrupts = <0x5f 0x04>;
-		interrupt-parent = <0x04>;
-
-		spiflash {
-			compatible = "jedec,spi-nor";
-			spi-rx-bus-width = <0x04>;
-			spi-tx-bus-width = <0x04>;
-		};
 	};
 
 	spi0@04180000 {
@@ -563,7 +545,7 @@
 	ethernet@4070000 {
 		compatible = "cvitek,ethernet";
 		reg = <0x00 0x4070000 0x00 0x10000>;
-		clock-names = "stmmaceth\0ptp_ref";
+		clock-names = "stmmaceth", "ptp_ref";
 		clocks = <0x08 0x09>;
 		tx-fifo-depth = <0x2000>;
 		rx-fifo-depth = <0x2000>;
@@ -578,6 +560,25 @@
 		phy-mode = "rmii";
 		interrupt-names = "macirq";
 		interrupts = <0x1f 0x04>;
+		interrupt-parent = <0x04>;
+	};
+
+	cv-emmc@4300000 {
+		compatible = "cvitek,cv181x-emmc";
+		reg = <0x00 0x4300000 0x00 0x1000>;
+		reg-names = "core_mem";
+		bus-width = <0x04>;
+		non-removable;
+		no-sdio;
+		no-sd;
+		src-frequency = <0x165a0bc0>;
+		min-frequency = <0x61a80>;
+		max-frequency = <0xbebc200>;
+		64_addressing;
+		reset_tx_rx_phy;
+		pll_index = <0x05>;
+		pll_reg = <0x3002064>;
+		interrupts = <0x22 0x04>;
 		interrupt-parent = <0x04>;
 	};
 
@@ -643,7 +644,7 @@
 		compatible = "cvitek,i2s_tdm_subsys";
 		reg = <0x00 0x4108000 0x00 0x100>;
 		clocks = <0x0d 0x02 0x04 0x02 0x2d 0x02 0x2e 0x02 0x2f 0x02 0x30>;
-		clock-names = "i2sclk\0clk_a0pll\0clk_sdma_aud0\0clk_sdma_aud1\0clk_sdma_aud2\0clk_sdma_aud3";
+		clock-names = "i2sclk", "clk_a0pll", "clk_sdma_aud0", "clk_sdma_aud1", "clk_sdma_aud2", "clk_sdma_aud3";
 		master_base = <0x4110000>;
 	};
 
@@ -725,14 +726,14 @@
 	cif {
 		compatible = "cvitek,cif";
 		reg = <0x00 0xa0c2000 0x00 0x2000 0x00 0xa0d0000 0x00 0x1000 0x00 0xa0c4000 0x00 0x2000 0x00 0xa0c6000 0x00 0x2000 0x00 0x3001c30 0x00 0x30>;
-		reg-names = "csi_mac0\0csi_wrap0\0csi_mac1\0csi_mac2\0pad_ctrl";
+		reg-names = "csi_mac0", "csi_wrap0", "csi_mac1", "csi_mac2", "pad_ctrl";
 		snsr-reset = <0x07 0x02 0x01 0x07 0x02 0x01 0x07 0x02 0x01>;
 		resets = <0x03 0x46 0x03 0x48 0x03 0x47 0x03 0x49>;
-		reset-names = "phy0\0phy1\0phy-apb0\0phy-apb1";
+		reset-names = "phy0", "phy1", "phy-apb0", "phy-apb1";
 		clocks = <0x02 0x5b 0x02 0x5c 0x02 0x88 0x02 0x03 0x02 0x05 0x02 0x02>;
-		clock-names = "clk_cam0\0clk_cam1\0clk_sys_2\0clk_mipimpll\0clk_disppll\0clk_fpll";
+		clock-names = "clk_cam0", "clk_cam1", "clk_sys_2", "clk_mipimpll", "clk_disppll", "clk_fpll";
 		interrupts = <0x1a 0x04 0x1b 0x04>;
-		interrupt-names = "csi0\0csi1";
+		interrupt-names = "csi0", "csi1";
 		interrupt-parent = <0x04>;
 	};
 
@@ -742,7 +743,7 @@
 		pwm-gpio = <0x0f 0x00 0x00>;
 		power-ct-gpio = <0x0f 0x01 0x00>;
 		clocks = <0x02 0x69 0x02 0x6a>;
-		clock-names = "clk_disp\0clk_dsi";
+		clock-names = "clk_disp", "clk_dsi";
 		status = "okay";
 	};
 
@@ -760,7 +761,7 @@
 		compatible = "cvitek,vi";
 		reg = <0x00 0xa000000 0x00 0x80000>;
 		clocks = <0x02 0x50 0x02 0x51 0x02 0x88 0x02 0x9a 0x02 0x4f 0x02 0x93 0x02 0x9d 0x02 0x5f 0x02 0x5d 0x02 0x5e 0x02 0x9f>;
-		clock-names = "clk_sys_0\0clk_sys_1\0clk_sys_2\0clk_sys_3\0clk_axi\0clk_csi_be\0clk_raw\0clk_isp_top\0clk_csi_mac0\0clk_csi_mac1\0clk_csi_mac2";
+		clock-names = "clk_sys_0", "clk_sys_1", "clk_sys_2", "clk_sys_3", "clk_axi", "clk_csi_be", "clk_raw", "clk_isp_top", "clk_csi_mac0", "clk_csi_mac1", "clk_csi_mac2";
 		clock-freq-vip-sys1 = <0x11e1a300>;
 		interrupts = <0x18 0x04>;
 		interrupt-parent = <0x04>;
@@ -772,7 +773,7 @@
 		reg = <0x00 0xa080000 0x00 0x10000 0x00 0xa0d1000 0x00 0x100>;
 		reg-names = "sc";
 		clocks = <0x02 0x50 0x02 0x51 0x02 0x88 0x02 0x60 0x02 0x61 0x02 0x62 0x02 0x63 0x02 0x64 0x02 0x65 0x02 0x66>;
-		clock-names = "clk_sys_0\0clk_sys_1\0clk_sys_2\0clk_img_d\0clk_img_v\0clk_sc_top\0clk_sc_d\0clk_sc_v1\0clk_sc_v2\0clk_sc_v3";
+		clock-names = "clk_sys_0", "clk_sys_1", "clk_sys_2", "clk_img_d", "clk_img_v", "clk_sc_top", "clk_sc_d", "clk_sc_v1", "clk_sc_v2", "clk_sc_v3";
 		clock-freq-vip-sys1 = <0x11e1a300>;
 		interrupts = <0x19 0x04>;
 		interrupt-names = "sc";
@@ -791,12 +792,12 @@
 	vo {
 		compatible = "cvitek,vo";
 		reg = <0x00 0xa080000 0x00 0x10000 0x00 0xa0c8000 0x00 0xa0 0x00 0xa0d1000 0x00 0x100>;
-		reg-names = "sc\0vip_sys\0dphy";
+		reg-names = "sc", "vip_sys", "dphy";
 		clocks = <0x02 0x69 0x02 0x6a 0x02 0x68>;
 		reset-gpio = <0x0f 0x02 0x01>;
 		pwm-gpio = <0x0f 0x00 0x00>;
 		power-ct-gpio = <0x0f 0x01 0x00>;
-		clock-names = "clk_disp\0clk_dsi\0clk_bt";
+		clock-names = "clk_disp", "clk_dsi", "clk_bt";
 		power-gpio = <0x0f 0x01 0x00>;
 		status = "okay";
 	};
@@ -807,14 +808,14 @@
 		ranges;
 
 		cvifb {
-			alloc-ranges = <0x00 0x9523e000 0x00 0x1c2000>;
-			size = <0x00 0x1c2000>;
+			alloc-ranges = <0x00 0x9e030000 0x00 0x7d0000>;
+			size = <0x00 0x7d0000>;
 			phandle = <0x10>;
 		};
 
 		ion {
 			compatible = "ion-region";
-			size = <0x00 0xaa00000>;
+			size = <0x00 0x1600000>;
 			phandle = <0x05>;
 		};
 	};
@@ -831,7 +832,7 @@
 		reg = <0x00 0xa0c0000 0x00 0x1000>;
 		reg-names = "dwa";
 		clocks = <0x02 0x50 0x02 0x51 0x02 0x88 0x02 0x9a 0x02 0x9b 0x02 0x67>;
-		clock-names = "clk_sys_0\0clk_sys_1\0clk_sys_2\0clk_sys_3\0clk_sys_4\0clk_dwa";
+		clock-names = "clk_sys_0", "clk_sys_1", "clk_sys_2", "clk_sys_3", "clk_sys_4", "clk_dwa";
 		clock-freq-vip-sys1 = <0x11e1a300>;
 		interrupts = <0x1c 0x04>;
 		interrupt-names = "dwa";
@@ -845,20 +846,20 @@
 	vcodec {
 		compatible = "cvitek,asic-vcodec";
 		reg = <0x00 0xb020000 0x00 0x10000 0x00 0xb010000 0x00 0x10000 0x00 0xb030000 0x00 0x100 0x00 0xb058000 0x00 0x100 0x00 0xb050000 0x00 0x400>;
-		reg-names = "h265\0h264\0vc_ctrl\0vc_sbm\0vc_addr_remap";
+		reg-names = "h265", "h264", "vc_ctrl", "vc_sbm", "vc_addr_remap";
 		clocks = <0x02 0x53 0x02 0x55 0x02 0x59 0x02 0x56 0x02 0x5a 0x02 0x54 0x02 0x87 0x02 0x8e 0x02 0x8b>;
-		clock-names = "clk_axi_video_codec\0clk_h264c\0clk_apb_h264c\0clk_h265c\0clk_apb_h265c\0clk_vc_src0\0clk_vc_src1\0clk_vc_src2\0clk_cfg_reg_vc";
+		clock-names = "clk_axi_video_codec", "clk_h264c", "clk_apb_h264c", "clk_h265c", "clk_apb_h265c", "clk_vc_src0", "clk_vc_src1", "clk_vc_src2", "clk_cfg_reg_vc";
 		interrupts = <0x16 0x04 0x15 0x04 0x17 0x04>;
-		interrupt-names = "h265\0h264\0sbm";
+		interrupt-names = "h265", "h264", "sbm";
 		interrupt-parent = <0x04>;
 	};
 
 	jpu {
 		compatible = "cvitek,asic-jpeg";
 		reg = <0x00 0xb000000 0x00 0x300 0x00 0xb030000 0x00 0x100 0x00 0xb058000 0x00 0x100>;
-		reg-names = "jpeg\0vc_ctrl\0vc_sbm";
+		reg-names = "jpeg", "vc_ctrl", "vc_sbm";
 		clocks = <0x02 0x53 0x02 0x57 0x02 0x58 0x02 0x54 0x02 0x87 0x02 0x8e 0x02 0x8b>;
-		clock-names = "clk_axi_video_codec\0clk_jpeg\0clk_apb_jpeg\0clk_vc_src0\0clk_vc_src1\0clk_vc_src2\0clk_cfg_reg_vc";
+		clock-names = "clk_axi_video_codec", "clk_jpeg", "clk_apb_jpeg", "clk_vc_src0", "clk_vc_src1", "clk_vc_src2", "clk_cfg_reg_vc";
 		resets = <0x03 0x04>;
 		reset-names = "jpeg";
 		interrupts = <0x14 0x04>;
@@ -869,7 +870,7 @@
 	cvi_vc_drv {
 		compatible = "cvitek,cvi_vc_drv";
 		reg = <0x00 0xb030000 0x00 0x100 0x00 0xb058000 0x00 0x100 0x00 0xb050000 0x00 0x400>;
-		reg-names = "vc_ctrl\0vc_sbm\0vc_addr_remap";
+		reg-names = "vc_ctrl", "vc_sbm", "vc_addr_remap";
 	};
 
 	rtos_cmdqu {
@@ -890,7 +891,7 @@
 		g-np-tx-fifo-size = <0x20>;
 		g-tx-fifo-size = <0x300 0x200 0x200 0x180 0x80 0x80>;
 		clocks = <0x02 0x47 0x02 0x48 0x02 0x49 0x02 0x4a 0x02 0x4b>;
-		clock-names = "clk_axi\0clk_apb\0clk_125m\0clk_33k\0clk_12m";
+		clock-names = "clk_axi", "clk_apb", "clk_125m", "clk_33k", "clk_12m";
 		status = "okay";
 		interrupts = <0x1e 0x04>;
 		interrupt-parent = <0x04>;
@@ -1029,7 +1030,7 @@
 
 	cv181x_cooling {
 		clocks = <0x02 0x98 0x02 0x0f>;
-		clock-names = "clk_cpu\0clk_tpu_axi";
+		clock-names = "clk_cpu", "clk_tpu_axi";
 		dev-freqs = <0x32a9f880 0x1dcd6500 0x1954fc40 0x165a0bc0 0x1954fc40 0x11e1a300>;
 		compatible = "cvitek,cv181x-cooling";
 		#cooling-cells = <0x02>;

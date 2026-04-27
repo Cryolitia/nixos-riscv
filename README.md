@@ -1,6 +1,20 @@
 # NixOS RISC-V
 An ongoing effort porting NixOS to the RISC-V architecture through cross compilation
 
+---
+
+## Cryolitia's work
+
+Support Milk-V Duo S / Module 01 with EMMC support
+
+Use the modified SDK: <https://github.com/cryolitia/duo-buildroot-sdk>
+
+Build with `nix build .#hydraJobs.duos` and use `scripts/img2emmc.sh` for converting sd-card img to emmc format, and burn it following <https://milkv.io/zh/docs/duo/getting-started/duo-module-01#emmc-%E7%89%88%E6%9C%AC%E5%9B%BA%E4%BB%B6%E7%83%A7%E5%BD%95>
+
+This work is sponsored by @mercallureAI .
+
+---
+
 ## Supported Boards
 
 ### VisionFive 2
