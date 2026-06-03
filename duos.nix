@@ -38,9 +38,9 @@
 let
   duo-buildroot-sdk = pkgs.fetchFromGitHub {
     owner = "milkv-duo";
-    repo = "duo-buildroot-sdk";
-    rev = "0e0b8efb59bf8b9664353323abbfdd11751056a4";
-    hash = "sha256-tG4nVVXh1Aq6qeoy+J1LfgsW+J1Yx6KxfB1gjxprlXU=";
+    repo = "duo-buildroot-sdk-v2";
+    tag = "v2.0.1";
+    hash = "sha256-+57afhR4Ydh2716/AwgA1vQQSs3PtnB/NzH2Y5lIHVs=";
   };
 
   version = "5.10.4";
@@ -127,7 +127,7 @@ in
     "console=ttyS0,115200"
     "earlycon=sbi"
     "riscv.fwsz=0x80000"
-    "blkdevparts=mmcblk0:63360K(BOOT),2048K(MISC),128K(ENV),-(ROOTFS);mmcblk0boot0:1M(fip),1M(fip_bak);"
+    "blkdevparts=mmcblk0:8192K(BOOT),2048K(MISC),128K(ENV),-(ROOTFS);mmcblk0boot0:1M(fip),1M(fip_bak);"
     "root=/dev/mmcblk0p4"
     "rootwait"
     "rw"
@@ -248,7 +248,7 @@ in
   hardware.firmware = [
     (pkgs.stdenv.mkDerivation {
       name = "wlan-aic8800-firmware";
-      src = "${duo-buildroot-sdk}/device/milkv-duos-sd/overlay/mnt/system/firmware/aic8800/";
+      src = "${duo-buildroot-sdk}/device/generic/rootfs_overlay/duos/mnt/system/firmware/aic8800/";
       installPhase = ''
         mkdir -p $out/lib/firmware/aic8800
         cp $src/fw_patch_table_8800d80_u02.bin $out/lib/firmware/aic8800/
@@ -408,4 +408,6 @@ in
     pulse.enable = true;
   };
 
+  # _TODO_
+  system.requiredKernelConfig = lib.mkForce [ ];
 }
