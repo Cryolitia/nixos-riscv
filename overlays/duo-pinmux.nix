@@ -15,7 +15,7 @@ pkgs.stdenv.mkDerivation rec {
 
   buildPhase = ''
     cd duos
-    riscv64-unknown-linux-gnu-gcc -march=rv64imafdcv0p7 -mabi=lp64d duo_pinmux.c devmem.c -o duo-pinmux
+    riscv64-unknown-linux-gnu-gcc -march=rv64imafdc -mabi=lp64d duo_pinmux.c devmem.c -o duo-pinmux
   '';
 
   installPhase = ''

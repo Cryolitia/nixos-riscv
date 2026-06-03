@@ -1,4 +1,10 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 # The cv1812cp_milkv_duo256m_sd.dtb and fip-duo256.bin (aka fip.bin) files in
 # the prebuilt/ dir used by this module were generated on Ubuntu via "./build.sh
@@ -35,7 +41,6 @@
 
 # will let you drop into a prompt to find it in /mnt-root/nix/store
 
-
 let
   duo-buildroot-sdk = pkgs.fetchFromGitHub {
     owner = "milkv-duo";
@@ -47,24 +52,27 @@ let
   version = "5.10.4";
   src = "${duo-buildroot-sdk}/linux_${lib.versions.majorMinor version}";
 
-  configfile = pkgs.writeText "milkv-duo-256-linux-config"
-    (builtins.readFile ./prebuilt/duo-256-kernel-config.txt);
+  configfile = pkgs.writeText "milkv-duo-256-linux-config" (
+    builtins.readFile ./prebuilt/duo-256-kernel-config.txt
+  );
 
-  kernel = (pkgs.linuxManualConfig {
-    inherit version src configfile;
-    allowImportFromDerivation = true;
-  }).overrideAttrs {
-    preConfigure = ''
-      substituteInPlace arch/riscv/Makefile \
-        --replace '-mno-ldd' "" \
-        --replace 'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)' \
-                  'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)_zicsr_zifencei' \
-        --replace 'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)' \
-                  'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)_zicsr_zifencei'
-      substituteInPlace arch/riscv/mm/context.c \
-        --replace sptbr CSR_SATP
-    '';
-  };
+  kernel =
+    (pkgs.linuxManualConfig {
+      inherit version src configfile;
+      allowImportFromDerivation = true;
+    }).overrideAttrs
+      {
+        preConfigure = ''
+          substituteInPlace arch/riscv/Makefile \
+            --replace '-mno-ldd' "" \
+            --replace 'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)' \
+                      'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)_zicsr_zifencei' \
+            --replace 'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)' \
+                      'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)_zicsr_zifencei'
+          substituteInPlace arch/riscv/mm/context.c \
+            --replace sptbr CSR_SATP
+        '';
+      };
 in
 {
 
@@ -79,9 +87,11 @@ in
   nixpkgs = {
     localSystem.config = "x86_64-unknown-linux-gnu";
     crossSystem.config = "riscv64-unknown-linux-gnu";
-    overlays = [(final: super: {
-      makeModulesClosure = x: super.makeModulesClosure (x // {allowMissing = true;});
-    })];
+    overlays = [
+      (final: super: {
+        makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
+      })
+    ];
   };
 
   boot.kernelPackages = pkgs.linuxPackagesFor kernel;
@@ -111,17 +121,21 @@ in
     "kernel.pid_max" = 4096 * 8; # PAGE_SIZE * 8
   };
 
-  system.build.dtb = pkgs.runCommand "duo256m.dtb" {
-    nativeBuildInputs = [ pkgs.dtc ]; } ''
-    dtc -I dts -O dtb -o "$out" ${pkgs.writeText "duo256m.dts" ''
-      /include/ "${./prebuilt/cv1812cp_milkv_duo256m_sd.dts}"
-      / {
-        chosen {
-          bootargs = "init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}";
-        };
-      };
-    ''}
-  '';
+  system.build.dtb =
+    pkgs.runCommand "duo256m.dtb"
+      {
+        nativeBuildInputs = [ pkgs.dtc ];
+      }
+      ''
+        dtc -I dts -O dtb -o "$out" ${pkgs.writeText "duo256m.dts" ''
+          /include/ "${./prebuilt/cv1812cp_milkv_duo256m_sd.dts}"
+          / {
+            chosen {
+              bootargs = "init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}";
+            };
+          };
+        ''}
+      '';
 
   system.build.its = pkgs.writeText "cv181x.its" ''
     /dts-v1/;
@@ -179,12 +193,17 @@ in
     };
   '';
 
-  system.build.bootsd = pkgs.runCommand "boot.sd"
-    {
-      nativeBuildInputs = [ pkgs.ubootTools pkgs.dtc ];
-    } ''
-    mkimage -f ${config.system.build.its} "$out"
-  '';
+  system.build.bootsd =
+    pkgs.runCommand "boot.sd"
+      {
+        nativeBuildInputs = [
+          pkgs.ubootTools
+          pkgs.dtc
+        ];
+      }
+      ''
+        mkimage -f ${config.system.build.its} "$out"
+      '';
 
   services.zram-generator = {
     enable = true;
@@ -212,7 +231,11 @@ in
       ];
     };
     # dnsmasq reads /etc/resolv.conf to find 8.8.8.8 and 1.1.1.1
-    nameservers =  [ "127.0.0.1" "8.8.8.8" "1.1.1.1"];
+    nameservers = [
+      "127.0.0.1"
+      "8.8.8.8"
+      "1.1.1.1"
+    ];
     useDHCP = false;
     dhcpcd.enable = false;
     defaultGateway = "192.168.58.1";
@@ -238,12 +261,17 @@ in
   };
 
   # generating the host key takes a while
-  systemd.services.sshd.serviceConfig ={
+  systemd.services.sshd.serviceConfig = {
     TimeoutStartSec = 120;
   };
 
   environment.systemPackages = with pkgs; [
-    pfetch python311 usbutils inetutils iproute2 vim
+    pfetch
+    python311
+    usbutils
+    inetutils
+    iproute2
+    vim
   ];
 
   programs.less.lessopen = null;

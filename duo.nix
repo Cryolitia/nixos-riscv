@@ -1,4 +1,10 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 let
   duo-buildroot-sdk = pkgs.fetchFromGitHub {
     owner = "milkv-duo";
@@ -40,21 +46,23 @@ let
       --replace CONFIG_EPOLL=n          CONFIG_EPOLL=y
     cat ${extraconfig} >> "$out"
   '';
-  kernel = (pkgs.linuxManualConfig {
-    inherit version src configfile;
-    allowImportFromDerivation = true;
-  }).overrideAttrs {
-    preConfigure = ''
-      substituteInPlace arch/riscv/Makefile \
-        --replace '-mno-ldd' "" \
-        --replace 'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)' \
-                  'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)_zicsr_zifencei' \
-        --replace 'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)' \
-                  'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)_zicsr_zifencei'
-      substituteInPlace arch/riscv/mm/context.c \
-        --replace sptbr CSR_SATP
-    '';
-  };
+  kernel =
+    (pkgs.linuxManualConfig {
+      inherit version src configfile;
+      allowImportFromDerivation = true;
+    }).overrideAttrs
+      {
+        preConfigure = ''
+          substituteInPlace arch/riscv/Makefile \
+            --replace '-mno-ldd' "" \
+            --replace 'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)' \
+                      'KBUILD_CFLAGS += -march=$(riscv-march-cflags-y)_zicsr_zifencei' \
+            --replace 'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)' \
+                      'KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)_zicsr_zifencei'
+          substituteInPlace arch/riscv/mm/context.c \
+            --replace sptbr CSR_SATP
+        '';
+      };
 in
 {
 
@@ -69,14 +77,20 @@ in
   nixpkgs = {
     localSystem.config = "x86_64-unknown-linux-gnu";
     crossSystem.config = "riscv64-unknown-linux-gnu";
-    overlays = [(final: super: {
-      makeModulesClosure = x: super.makeModulesClosure (x // {allowMissing = true;});
-    })];
+    overlays = [
+      (final: super: {
+        makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
+      })
+    ];
   };
 
   boot.kernelPackages = pkgs.linuxPackagesFor kernel;
 
-  boot.kernelParams = [ "console=ttyS0,115200" "earlycon=sbi" "riscv.fwsz=0x80000" ];
+  boot.kernelParams = [
+    "console=ttyS0,115200"
+    "earlycon=sbi"
+    "riscv.fwsz=0x80000"
+  ];
   boot.consoleLogLevel = 9;
 
   boot.initrd.includeDefaultModules = false;
@@ -164,12 +178,17 @@ in
     };
   '';
 
-  system.build.bootsd = pkgs.runCommand "boot.sd"
-    {
-      nativeBuildInputs = [ pkgs.ubootTools pkgs.dtc ];
-    } ''
-    mkimage -f ${config.system.build.its} "$out"
-  '';
+  system.build.bootsd =
+    pkgs.runCommand "boot.sd"
+      {
+        nativeBuildInputs = [
+          pkgs.ubootTools
+          pkgs.dtc
+        ];
+      }
+      ''
+        mkimage -f ${config.system.build.its} "$out"
+      '';
 
   services.zram-generator = {
     enable = true;

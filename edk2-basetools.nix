@@ -1,7 +1,8 @@
-{ stdenv
-, version
-, src
-, libuuid
+{
+  stdenv,
+  version,
+  src,
+  libuuid,
 }:
 
 stdenv.mkDerivation {
@@ -11,7 +12,10 @@ stdenv.mkDerivation {
   strictDeps = true;
   buildInputs = [ libuuid ];
 
-  makeFlags = [ "-C" "BaseTools/Source/C" ];
+  makeFlags = [
+    "-C"
+    "BaseTools/Source/C"
+  ];
 
   enableParallelBuilding = true;
 

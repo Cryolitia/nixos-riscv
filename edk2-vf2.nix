@@ -1,9 +1,10 @@
-{ stdenv
-, fetchFromGitHub
-, python3
-, dtc
-, buildPackages
-, buildTarget ? "RELEASE"
+{
+  stdenv,
+  fetchFromGitHub,
+  python3,
+  dtc,
+  buildPackages,
+  buildTarget ? "RELEASE",
 }:
 let
   version = "202306";
@@ -40,7 +41,10 @@ stdenv.mkDerivation {
   '';
 
   depsBuildBuild = [ buildPackages.stdenv.cc ]; # for cpp
-  nativeBuildInputs = [ python3 dtc ];
+  nativeBuildInputs = [
+    python3
+    dtc
+  ];
 
   env = {
     PYTHON_COMMAND = "python3";

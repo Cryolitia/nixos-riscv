@@ -22,7 +22,7 @@ if [ ! -d "$OUT_DIR" ]; then
     mkdir -p "$OUT_DIR"
 fi
 
-rm "$OUT_DIR"/*
+rm "$OUT_DIR"/*.emmc
 
 # --- 2. 准备临时工作环境 ---
 WORK_DIR=$(mktemp -d)

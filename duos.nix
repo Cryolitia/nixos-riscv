@@ -1,4 +1,5 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
@@ -60,7 +61,7 @@ let
       inherit version src configfile;
       allowImportFromDerivation = true;
     }).overrideAttrs
-      {
+      (oldAttrs: {
         preConfigure = ''
           patch -Np2 -i ${aic8800-shutup}
 
@@ -73,12 +74,27 @@ let
           substituteInPlace arch/riscv/mm/context.c \
             --replace sptbr CSR_SATP
         '';
-      };
+
+        preFixup = (oldAttrs.preFixup or "") + ''
+          TARGET_MAKEFILE=$(find $dev -name Makefile | grep "arch/riscv/Makefile" | head -n 1)
+
+          if [ -n "$TARGET_MAKEFILE" ]; then
+            echo "Found target Makefile at: $TARGET_MAKEFILE"
+            chmod +w "$TARGET_MAKEFILE"
+            
+            substituteInPlace "$TARGET_MAKEFILE" --replace "prepare: vdso_prepare" "prepare:"
+            
+            echo "Successfully patched $TARGET_MAKEFILE"
+          else
+            echo "ERROR: Could not find arch/riscv/Makefile in $dev"
+            exit 1
+          fi
+        '';
+      });
   duo_overlay = import ./overlays/duo.nix;
 
 in
 {
-
   disabledModules = [
     "profiles/all-hardware.nix"
   ];
@@ -99,6 +115,13 @@ in
   };
 
   boot.kernelPackages = pkgs.linuxPackagesFor kernel;
+  boot.kernelPatches = [
+    {
+      name = "add-remoteproc-and-burn-support";
+      patch = ./prebuilt/0001-add-remoteproc-and-burn-support.patch;
+    }
+  ]
+  ;
 
   boot.kernelParams = [
     "console=ttyS0,115200"
@@ -110,12 +133,6 @@ in
     "rw"
   ];
   boot.consoleLogLevel = 9;
-
-  boot.initrd.includeDefaultModules = false;
-  boot.initrd.systemd = {
-    # enable = true;
-    # enableTpm2 = false;
-  };
 
   boot.loader = {
     grub.enable = false;
@@ -131,9 +148,17 @@ in
     "kernel.pid_max" = 4096 * 8; # PAGE_SIZE * 8
   };
 
+  boot.extraModulePackages = [
+    (config.boot.kernelPackages.callPackage ./kmod/saradc/package.nix { })
+    (config.boot.kernelPackages.callPackage ./kmod/rtc/package.nix { })
+    (config.boot.kernelPackages.callPackage ./kmod/w1-gpio-custom/package.nix { })
+  ];
+
   boot.kernelModules = [
     "aic8800_bsp"
     "aic8800_fdrv"
+    "cv181x_saradc"
+    "cv181x_rtc"
   ];
 
   system.stateVersion = "25.05";
@@ -245,74 +270,28 @@ in
   };
 
   boot.initrd.systemd.root = null;
-  boot.initrd.compressor = "zstd";
 
   users.users.root.initialPassword = "milkv";
   services.getty.autologinUser = "root";
-  users.motd = ''Welcome to the milkv duos!'';
+  users.motd = "Welcome to the milkv duo module 01!";
 
   services.udev.enable = false;
   services.nscd.enable = false;
-  nix.enable = false;
+  nix.enable = true;
   system.nssModules = lib.mkForce [ ];
 
   networking = {
-    wireless = {
-      enable = true;
-      networks."mySSID1".psk = "password";
-      networks."mySSID2".psk = "password";
-      extraConfig = "ctrl_interface=DIR=/var/run/wpa_supplicant";
-    };
-    # output ends up in /run/wpa_supplicant/wpa_supplicant.conf
-    interfaces.usb0 = {
-      ipv4.addresses = [
-        {
-          address = "192.168.58.2";
-          prefixLength = 24;
-        }
-      ];
-    };
-    interfaces.end0 = {
-      ipv4.addresses = [
-        {
-          address = "192.168.7.251";
-          prefixLength = 24;
-        }
-      ];
-    };
-    interfaces.wlan0 = {
-      ipv4.addresses = [
-        {
-          address = "192.168.7.250";
-          prefixLength = 24;
-        }
-      ];
-    };
-    # dnsmasq reads /etc/resolv.conf to find 8.8.8.8 and 1.1.1.1
-    nameservers = [
-      "127.0.0.1"
-      "8.8.8.8"
-      "1.1.1.1"
-    ];
-    useDHCP = false;
-    dhcpcd.enable = false;
-    defaultGateway = {
-      address = "192.168.7.1";
-      interface = "wlan0";
-    };
-    hostName = "nix-prunus";
+    hostName = "milkv-module-01-nixos";
     firewall.enable = false;
-    networkmanager.enable = false;
+    networkmanager.enable = true;
   };
 
-  # configure usb0 as an RNDIS device
+  # configure usb0 as an host device
   systemd.tmpfiles.settings = {
     "10-cviusb" = {
-      "/proc/cviusb/otg_role".w.argument = "device";
+      "/proc/cviusb/otg_role".w.argument = "host";
     };
   };
-
-  services.dnsmasq.enable = true;
 
   services.openssh = {
     enable = true;
@@ -328,19 +307,39 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    pfetch
-    python3
+    fastfetch
     usbutils
     inetutils
     iproute2
     helix
     i2c-tools
-    blink-blue-led
-    eza
+    duo-utils
     duo-pinmux
     spidev-test
-    wpa_supplicant
-    wirelesstools
+    gcc
+    gnumake
+    libgpiod
+    lgpio
+    vim
+    alsa-utils
+    evtest
+    (mpv.override {
+      youtubeSupport = false;
+    })
+
+    (python3.withPackages (
+      ps: with ps; [
+        python
+        spidev
+        pillow
+        numpy
+        gpiozero
+        gpiod
+        lgpio
+        smbus2
+        w1thermsensor
+      ]
+    ))
   ];
 
   programs.less.lessopen = null;
@@ -358,5 +357,55 @@ in
   systemd.services.expand-root-partition.script = lib.mkForce ''
     ${lib.getExe' pkgs.e2fsprogs "resize2fs"} /dev/mmcblk0p4
   '';
+
+  nix = {
+    settings = {
+      narinfo-cache-positive-ttl = 60 * 60 * 24;
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+
+      nix-path = lib.mapAttrsToList (name: path: "${name}=${path}") inputs;
+
+      substituters = [
+        "https://mirrors.mirrorz.org/nix-channels/store"
+        "https://cache.nixos.org/"
+
+        "https://nix-community.cachix.org"
+        "https://cryolitia.cachix.org"
+        "http://cache.cryolitia.dn42"
+      ];
+
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "cryolitia.cachix.org-1:/RUeJIs3lEUX4X/oOco/eIcysKZEMxZNjqiMgXVItQ8="
+        "kp920.cryolitia.dn42:M68UcYMNX/2yWXFwDb21jAregdcIsF3uIrSmXldX70k="
+      ];
+
+      fallback = true;
+
+      # Disable the built-in flake registry to speed up evaluation
+      flake-registry = "";
+    };
+
+    # This is important. It locks nixpkgs registry used in nix shell
+    # to the same of flakes. Saves time.
+    registry = ({ pkgs.flake = inputs.self; } // lib.mapAttrs (_: flakes: { flake = flakes; }) inputs);
+
+    # make `nix run nixpkgs#nixpkgs` use the same nixpkgs as the one used by this flake.
+    channel.enable = false; # remove nix-channel related tools & configs, we use flakes instead.
+  };
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    pulse.enable = true;
+  };
 
 }

@@ -1,23 +1,23 @@
 { pkgs }:
 pkgs.stdenv.mkDerivation {
-  pname = "blink-blue-led";
+  pname = "duo-utils";
   version = "1.0";
-  src = ./blink_blue_led;
+  src = ./duo-utils;
 
   buildInputs = [
   ];
 
   # Build Phases
-  configurePhase = '''';
-  buildPhase = '''';
+  configurePhase = "";
+  buildPhase = "";
   installPhase = ''
     mkdir -p "$out/bin"
-    cp ./blink.sh "$out/bin/blink-blue-led"
-    chmod 777 $out/bin/blink-blue-led
+    for f in ./**.sh; do cp "$f" $out/bin/$(basename "''${f%.sh}"); done
+    chmod 777 $out/bin/*
     patchShebangs --build $out/bin
   '';
   meta = with pkgs.lib; {
-    description = "The blink script of the official buildroot repo";
+    description = "The scripts of the official buildroot repo";
     license = licenses.mit;
     platforms = platforms.all;
   };

@@ -3,12 +3,7 @@
     nixpkgs.url = "github:cryolitia/nixpkgs/555e489664bb";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
-  outputs =
-    {
-      self,
-      nixpkgs,
-      nixos-hardware,
-    }:
+  outputs = inputs@{ self, nixpkgs, nixos-hardware }: 
     {
 
       hydraJobs = with self.nixosConfigurations.qemu; {
@@ -49,6 +44,9 @@
           modules = [ ./duo-256.nix ];
         };
         duos = nixpkgs.lib.nixosSystem {
+          specialArgs = {
+                inherit inputs;
+              };
           modules = [ ./duos.nix ];
         };
         visionfive2 = nixpkgs.lib.nixosSystem {
