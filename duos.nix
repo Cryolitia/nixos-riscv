@@ -120,6 +120,10 @@ in
       name = "add-remoteproc-and-burn-support";
       patch = ./prebuilt/0001-add-remoteproc-and-burn-support.patch;
     }
+    {
+      name = "st7796";
+      patch = ./prebuilt/0001-st7796.patch;
+    }
   ]
   ;
 
@@ -127,10 +131,11 @@ in
     "console=ttyS0,115200"
     "earlycon=sbi"
     "riscv.fwsz=0x80000"
-    "blkdevparts=mmcblk0:8192K(BOOT),2048K(MISC),128K(ENV),-(ROOTFS);mmcblk0boot0:1M(fip),1M(fip_bak);"
+    "blkdevparts=mmcblk0:63360K(BOOT),2048K(MISC),128K(ENV),-(ROOTFS);mmcblk0boot0:1M(fip),1M(fip_bak);"
     "root=/dev/mmcblk0p4"
     "rootwait"
     "rw"
+    "cma=16M"
   ];
   boot.consoleLogLevel = 9;
 
@@ -214,8 +219,8 @@ in
       };
 
       configurations {
-        default = "config-cv1813h_milkv_duos_emmc";
-        config-cv1813h_milkv_duos_emmc {
+        default = "config-sg2000_milkv_duos_musl_riscv64_emmc";
+        config-sg2000_milkv_duos_musl_riscv64_emmc {
           description = "boot cvitek system with board cv1812h_milkv_duos";
           kernel = "kernel-1";
           fdt = "fdt-1";
@@ -323,6 +328,9 @@ in
     vim
     alsa-utils
     evtest
+    wchisp
+    btop
+    libdrm
     (mpv.override {
       youtubeSupport = false;
     })

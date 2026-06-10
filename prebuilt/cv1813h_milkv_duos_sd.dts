@@ -159,7 +159,7 @@
 		block-ts = <0x0f>;
 		interrupts = <0x1d 0x04>;
 		interrupt-parent = <0x04>;
-		phandle = <0x0e>;
+		phandle = <0x0f>;
 	};
 
 	cv-wd@0x3010000 {
@@ -168,6 +168,13 @@
 		resets = <0x03 0x30>;
 		clocks = <0x06>;
 		interrupts = <0x3a 0x04>;
+	};
+
+	cvi_spacc@02060000 {
+		reg = <0x00 0x2060000 0x00 0x1000>;
+		compatible = "cvitek,spacc";
+		interrupts = <0x5b 0x04>;
+		interrupt-parent = <0x04>;
 	};
 
 	pwm@3060000 {
@@ -269,12 +276,23 @@
 		interrupt-parent = <0x04>;
 		status = "okay";
 		num-cs = <0x01>;
+		cs-gpios = <0x07 0x10 0x00>;
 
 		spidev@0 {
 			compatible = "rohm,dh2228fv";
 			spi-max-frequency = <0xf4240>;
 			reg = <0x00>;
+			status = "disabled";
+		};
+
+		display@0 {
+			compatible = "sitronix,st7796";
+			reg = <0x00>;
 			status = "okay";
+			spi-max-frequency = <0x2625a00>;
+			dc-gpios = <0x08 0x13 0x00>;
+			reset-gpios = <0x08 0x12 0x00>;
+			rotation = <0xb4>;
 		};
 	};
 
@@ -349,7 +367,7 @@
 			interrupt-controller;
 			interrupts = <0x3c 0x04>;
 			interrupt-parent = <0x04>;
-			phandle = <0x07>;
+			phandle = <0x08>;
 		};
 	};
 
@@ -369,7 +387,7 @@
 			interrupt-controller;
 			interrupts = <0x3d 0x04>;
 			interrupt-parent = <0x04>;
-			phandle = <0x11>;
+			phandle = <0x07>;
 		};
 	};
 
@@ -427,7 +445,7 @@
 			interrupt-controller;
 			interrupts = <0x46 0x04>;
 			interrupt-parent = <0x04>;
-			phandle = <0x0f>;
+			phandle = <0x10>;
 		};
 	};
 
@@ -497,38 +515,22 @@
 		gt9xx@14 {
 			compatible = "goodix,gt9xx";
 			reg = <0x14>;
-			goodix,irq-gpio = <0x07 0x12 0x00>;
-			goodix,rst-gpio = <0x07 0x13 0x00>;
+			goodix,irq-gpio = <0x08 0x12 0x00>;
+			goodix,rst-gpio = <0x08 0x13 0x00>;
 			status = "okay";
 		};
-	};
-
-	eth_csrclk {
-		clock-output-names = "eth_csrclk";
-		clock-frequency = <0xee6b280>;
-		#clock-cells = <0x00>;
-		compatible = "fixed-clock";
-		phandle = <0x08>;
-	};
-
-	eth_ptpclk {
-		clock-output-names = "eth_ptpclk";
-		clock-frequency = <0x2faf080>;
-		#clock-cells = <0x00>;
-		compatible = "fixed-clock";
-		phandle = <0x09>;
 	};
 
 	stmmac-axi-config {
 		snps,wr_osr_lmt = <0x01>;
 		snps,rd_osr_lmt = <0x02>;
 		snps,blen = <0x04 0x08 0x10 0x00 0x00 0x00 0x00>;
-		phandle = <0x0a>;
+		phandle = <0x0b>;
 	};
 
 	rx-queues-config {
 		snps,rx-queues-to-use = <0x01>;
-		phandle = <0x0b>;
+		phandle = <0x0c>;
 
 		queue0 {
 		};
@@ -536,13 +538,14 @@
 
 	tx-queues-config {
 		snps,tx-queues-to-use = <0x01>;
-		phandle = <0x0c>;
+		phandle = <0x0d>;
 
 		queue0 {
 		};
 	};
 
 	cv-emmc@4300000 {
+		u-boot,dm-spl;
 		compatible = "cvitek,cv181x-emmc";
 		reg = <0x00 0x4300000 0x00 0x1000>;
 		reg-names = "core_mem";
@@ -550,6 +553,7 @@
 		non-removable;
 		no-sdio;
 		no-sd;
+		cap-mmc-hw-reset;
 		src-frequency = <0x165a0bc0>;
 		min-frequency = <0x61a80>;
 		max-frequency = <0xbebc200>;
@@ -582,7 +586,7 @@
 		reset-names = "sdhci";
 		pll_index = <0x06>;
 		pll_reg = <0x3002070>;
-		cvi-cd-gpios = <0x07 0x0d 0x01>;
+		cvi-cd-gpios = <0x08 0x0d 0x01>;
 		interrupts = <0x24 0x04>;
 		interrupt-parent = <0x04>;
 	};
@@ -613,20 +617,21 @@
 
 	wifi_pin {
 		compatible = "cvitek,wifi-pin";
-		poweron-gpio = <0x07 0x0f 0x00>;
-		wakeup-gpio = <0x0f 0x07 0x00>;
+		poweron-gpio = <0x08 0x0f 0x00>;
+		wakeup-gpio = <0x10 0x07 0x00>;
+		status = "okay";
 	};
 
 	bt_pin {
 		compatible = "cvitek,bt-pin";
-		poweron-gpio = <0x0f 0x09 0x00>;
+		poweron-gpio = <0x10 0x09 0x00>;
 	};
 
 	cif {
 		compatible = "cvitek,cif";
 		reg = <0x00 0xa0c2000 0x00 0x2000 0x00 0xa0d0000 0x00 0x1000 0x00 0xa0c4000 0x00 0x2000 0x00 0xa0c6000 0x00 0x2000 0x00 0x3001c30 0x00 0x30>;
 		reg-names = "csi_mac0", "csi_wrap0", "csi_mac1", "csi_mac2", "pad_ctrl";
-		snsr-reset = <0x07 0x02 0x01 0x07 0x02 0x01 0x07 0x02 0x01>;
+		snsr-reset = <0x08 0x02 0x01 0x08 0x02 0x01 0x08 0x02 0x01>;
 		resets = <0x03 0x46 0x03 0x48 0x03 0x47 0x03 0x49>;
 		reset-names = "phy0", "phy1", "phy-apb0", "phy-apb1";
 		clocks = <0x02 0x5b 0x02 0x5c 0x02 0x88 0x02 0x03 0x02 0x05 0x02 0x02>;
@@ -638,9 +643,9 @@
 
 	mipi_tx {
 		compatible = "cvitek,mipi_tx";
-		reset-gpio = <0x0f 0x02 0x01>;
-		pwm-gpio = <0x0f 0x00 0x00>;
-		power-ct-gpio = <0x0f 0x01 0x00>;
+		reset-gpio = <0x10 0x02 0x01>;
+		pwm-gpio = <0x10 0x00 0x00>;
+		power-ct-gpio = <0x10 0x01 0x00>;
 		clocks = <0x02 0x69 0x02 0x6a>;
 		clock-names = "clk_disp", "clk_dsi";
 		status = "okay";
@@ -693,11 +698,10 @@
 		reg = <0x00 0xa080000 0x00 0x10000 0x00 0xa0c8000 0x00 0xa0 0x00 0xa0d1000 0x00 0x100>;
 		reg-names = "sc", "vip_sys", "dphy";
 		clocks = <0x02 0x69 0x02 0x6a 0x02 0x68>;
-		reset-gpio = <0x0f 0x02 0x01>;
-		pwm-gpio = <0x0f 0x00 0x00>;
-		power-ct-gpio = <0x0f 0x01 0x00>;
+		reset-gpio = <0x10 0x02 0x01>;
+		pwm-gpio = <0x10 0x00 0x00>;
+		power-ct-gpio = <0x10 0x01 0x00>;
 		clock-names = "clk_disp", "clk_dsi", "clk_bt";
-		power-gpio = <0x0f 0x01 0x00>;
 		status = "okay";
 	};
 
@@ -709,7 +713,8 @@
 		cvifb {
 			alloc-ranges = <0x00 0x9f630000 0x00 0x7d0000>;
 			size = <0x00 0x7d0000>;
-			phandle = <0x10>;
+			no-map;
+			phandle = <0x11>;
 		};
 
 		ion {
@@ -721,13 +726,13 @@
 		rtos_dram@0x9fe00000 {
 			reg = <0x00 0x9fe00000 0x00 0x200000>;
 			no-map;
-			phandle = <0x14>;
+			phandle = <0x15>;
 		};
 	};
 
 	cvifb {
 		compatible = "cvitek,fb";
-		memory-region = <0x10>;
+		memory-region = <0x11>;
 		reg = <0x00 0xa088000 0x00 0x1000>;
 		reg-names = "disp";
 	};
@@ -797,10 +802,10 @@
 		g-tx-fifo-size = <0x300 0x200 0x200 0x180 0x80 0x80>;
 		clocks = <0x02 0x47 0x02 0x48 0x02 0x49 0x02 0x4a 0x02 0x4b>;
 		clock-names = "clk_axi", "clk_apb", "clk_125m", "clk_33k", "clk_12m";
+		vbus-gpio = <0x07 0x06 0x00>;
 		status = "okay";
 		interrupts = <0x1e 0x04>;
 		interrupt-parent = <0x04>;
-		vbus-gpio = <0x11 0x06 0x00>;
 	};
 
 	thermal@030E0000 {
@@ -855,6 +860,11 @@
 		clock-frequency = <0x1770000>;
 	};
 
+	pinctrl@3001000 {
+		compatible = "cvitek,pinctrl-cv181x";
+		reg = <0x00 0x3001000 0x00 0x1000>;
+	};
+
 	aliases {
 		i2c0 = "/i2c@04000000";
 		i2c1 = "/i2c@04010000";
@@ -870,14 +880,26 @@
 
 	chosen {
 		stdout-path = "serial0";
+
+		opensbi-domain {
+			compatible = "opensbi,dimain,config";
+
+			trusted-domain {
+				compatible = "opensbi,domain,instance";
+				possible-harts = <0x13>;
+				system-suspend-allowed;
+			};
+		};
 	};
 
 	cpus {
 		#address-cells = <0x01>;
 		#size-cells = <0x00>;
 		timebase-frequency = <0x17d7840>;
+		u-boot,dm-spl;
 
 		cpu-map {
+			u-boot,dm-spl;
 
 			cluster0 {
 
@@ -888,6 +910,7 @@
 		};
 
 		cpu@0 {
+			u-boot,dm-spl;
 			device_type = "cpu";
 			reg = <0x00>;
 			status = "okay";
@@ -895,12 +918,13 @@
 			riscv,isa = "rv64imafdvcsu";
 			mmu-type = "riscv,sv39";
 			clock-frequency = <0x17d7840>;
+			phandle = <0x13>;
 
 			interrupt-controller {
 				#interrupt-cells = <0x01>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
-				phandle = <0x13>;
+				phandle = <0x14>;
 			};
 		};
 	};
@@ -916,7 +940,7 @@
 			riscv,max-priority = <0x07>;
 			reg-names = "control";
 			reg = <0x00 0x70000000 0x00 0x4000000>;
-			interrupts-extended = <0x13 0xffffffff 0x13 0x09>;
+			interrupts-extended = <0x14 0xffffffff 0x14 0x09>;
 			interrupt-controller;
 			compatible = "riscv,plic0";
 			#interrupt-cells = <0x02>;
@@ -925,7 +949,7 @@
 		};
 
 		clint@74000000 {
-			interrupts-extended = <0x13 0x03 0x13 0x07>;
+			interrupts-extended = <0x14 0x03 0x14 0x07>;
 			reg = <0x00 0x74000000 0x00 0x10000>;
 			compatible = "riscv,clint0";
 			clint,has-no-64bit-mmio;
@@ -938,6 +962,11 @@
 		dev-freqs = <0x32a9f880 0x1dcd6500 0x1954fc40 0x165a0bc0 0x1954fc40 0x11e1a300>;
 		compatible = "cvitek,cv181x-cooling";
 		#cooling-cells = <0x02>;
+	};
+
+	dw_trng@0x02070000 {
+		reg = <0x00 0x2070000 0x00 0x1000>;
+		compatible = "snps,dw-trng";
 	};
 
 	memory@80000000 {
@@ -954,7 +983,7 @@
 
 	c906l_rproc@0 {
 		compatible = "cvitek,cv18xx-c906l-rproc";
-		memory-region = <0x14>;
+		memory-region = <0x15>;
 		core-name = "cv18xx-c906l";
 		firmware-name = "cvirtos.elf";
 		status = "okay";
