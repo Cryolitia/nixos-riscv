@@ -128,6 +128,7 @@ in
   ;
 
   boot.kernelParams = [
+    "console=tty0"
     "console=ttyS0,115200"
     "earlycon=sbi"
     "riscv.fwsz=0x80000"
@@ -331,6 +332,7 @@ in
     wchisp
     btop
     libdrm
+    fbida
     (mpv.override {
       youtubeSupport = false;
     })
