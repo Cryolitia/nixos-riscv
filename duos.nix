@@ -109,6 +109,14 @@ in
     overlays = [
       (final: super: {
         makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
+        systemd = super.systemd.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [
+        (super.fetchpatch {
+          url = "https://github.com/systemd/systemd/commit/08eff23a2dfb3f487e2451bb8cfb43c8fe59a9e0.patch";
+          hash = "sha256-BrqSo7wO0G/KrLBA/7jNHp4wrfOW5GQJzRzinbuHtng=";
+        })
+      ];
+    });
       })
       duo_overlay
     ];
@@ -124,8 +132,7 @@ in
       name = "st7796";
       patch = ./prebuilt/0001-st7796.patch;
     }
-  ]
-  ;
+  ];
 
   boot.kernelParams = [
     "console=tty0"
@@ -313,7 +320,9 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    fastfetch
+    (fastfetch.override {
+       enlightenmentSupport = false;
+    })
     usbutils
     inetutils
     iproute2
@@ -332,7 +341,9 @@ in
     wchisp
     btop
     libdrm
+    gdb
     fbida
+    fbset
     (mpv.override {
       youtubeSupport = false;
     })

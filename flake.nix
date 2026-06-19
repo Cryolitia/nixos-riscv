@@ -1,9 +1,14 @@
 {
   inputs = {
-    nixpkgs.url = "github:cryolitia/nixpkgs/555e489664bb";
+    nixpkgs.url = "github:cryolitia/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
-  outputs = inputs@{ self, nixpkgs, nixos-hardware }: 
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      nixos-hardware,
+    }:
     {
 
       hydraJobs = with self.nixosConfigurations.qemu; {
@@ -45,8 +50,8 @@
         };
         duos = nixpkgs.lib.nixosSystem {
           specialArgs = {
-                inherit inputs;
-              };
+            inherit inputs;
+          };
           modules = [ ./duos.nix ];
         };
         visionfive2 = nixpkgs.lib.nixosSystem {
